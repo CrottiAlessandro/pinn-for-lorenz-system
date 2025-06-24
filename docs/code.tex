@@ -1,0 +1,115 @@
+Let's break down the Python code step by step.
+The original code is available at the following link \hyperlink{https://github.com/maziarraissi/MultistepNNs}{MultistepNNS}
+
+We will use two important libraries: Numpy and TensorFlow. 
+\begin{itemize}
+    \item Numpy is a fundamental library for scientific computing in Python. While Python itself does not natively support efficient operations on arrays, this library provides powerful tools to manipulate multi-dimensional arrays and perform complex mathematical operations.
+    \item TensorFlow is utilized for building and optimizing neural networks. It offers a comprehensive environment for designing machine learning models, allowing for efficient computation and automatic differentiation. This makes it an excellent choice for implementing and training neural networks effectively.
+\end{itemize}
+
+Let's focus on the heart of the code, the class:
+\begin{verbatim}
+class Multistep_NN:
+\end{verbatim}
+This defines the class \texttt{Multistep\_NN}, which encapsulates the neural network model that is based on a multistep time-stepping scheme for dynamical systems.
+
+\begin{verbatim}
+def __init__(self, dt, X, layers, M, scheme):
+\end{verbatim}
+
+The class constructor initializes the model with several parameters:
+- \texttt{dt}: the time step size.\\
+- \texttt{X}: the input data with dimensions $S \times N \times D$, where $S$ is the number of trajectories, $N$ is the number of time snapshots, and $D$ is the number of dimensions in the system.\\
+- \texttt{layers}: the structure of the neural network (a list of layer sizes).\\
+- \texttt{M}: the number of steps used in the multistep method.\\
+- \texttt{scheme}: the multistep method used (Adams-Moulton, Adams-Bashforth, or backward difference formula).
+
+\begin{verbatim}
+switch = {'AM': lm.Adams_Moulton, 'AB': lm.Adams_Bashforth, 
+         'BDF': lm.backward_difference_formula}
+method = switch[scheme](M)
+self.alpha = np.float32(-method.alpha[::-1])
+self.beta = np.float32(method.beta[::-1])
+\end{verbatim}
+
+A dictionary \texttt{switch} is used to select the appropriate numerical method based on the value of \texttt{scheme}. Each scheme is provided by \texttt{nodepy} as a function that takes $M$ steps. The method coefficients \texttt{alpha} and \texttt{beta} are extracted and reversed, to match the time-stepping format. These coefficients are used to combine previous time steps in the multistep method as we have seen in the previous chapter \eqref{eq: gen multistep}.
+
+
+\begin{verbatim}
+self.sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+self.X_tf = tf.placeholder(tf.float32, shape=[self.S, None, self.D])
+self.X_star_tf = tf.placeholder(tf.float32, shape=[None, self.D])
+\end{verbatim}
+
+A TensorFlow session \texttt{sess} is created, with logging enabled to show where computations are performed (on CPU or GPU). Two placeholders are defined:
+- \texttt{X\_tf} for the full input data of shape $S \times N \times D$.
+- \texttt{X\_star\_tf} for a subset of the data used for predictions.
+
+\begin{verbatim}
+with tf.variable_scope(scope_name) as scope:
+    self.f_pred = self.neural_net(self.X_star_tf)
+with tf.variable_scope(scope, reuse=True):
+    self.Y_pred = self.net_Y(self.X_tf)
+\end{verbatim}
+
+The neural network for prediction (\texttt{f\_pred}) is built using the method \texttt{neural\_net}. The prediction for the time series (\texttt{Y\_pred}) is computed using the multistep method implemented in \texttt{net\_Y}. TensorFlow's variable scope allows reuse of the network parameters for different inputs.
+
+\begin{verbatim}
+self.loss = self.D*tf.reduce_sum(tf.square(self.Y_pred))
+self.optimizer_Adam = tf.train.AdamOptimizer()
+self.train_op_Adam = self.optimizer_Adam.minimize(self.loss)
+init = tf.global_variables_initializer()
+self.sess.run(init)
+\end{verbatim}
+
+The loss function is defined as the sum of squared differences between the predicted values \texttt{Y\_pred} and the true values. This function will be minimized during training. The Adam optimizer is selected for training, and \texttt{train\_op\_Adam} will be used to minimize the loss. All the TensorFlow variables are initialized before the training starts.
+
+\begin{verbatim}
+def neural_net(self, H):
+    num_layers = len(self.layers)
+    for l in range(0,num_layers-2):
+        H = tf.layers.dense(inputs=H, units=self.layers[l+1], 
+            activation=tf.nn.tanh)
+    H = tf.layers.dense(inputs=H, units=self.layers[-1], activation=None)
+    return H
+\end{verbatim}
+
+This method defines the structure of the neural network. It loops through the specified number of layers (\texttt{num\_layers}). For each layer, it uses \texttt{tf.layers.dense} to apply a fully connected layer. Activation functions (such as \texttt{tanh}) are used to introduce non-linearity. The last layer has no activation function.
+
+\begin{verbatim}
+def net_F(self, X):
+    X_reshaped = tf.reshape(X, [-1,self.D])
+    F_reshaped = self.neural_net(X_reshaped)
+    F = tf.reshape(F_reshaped, [self.S,-1,self.D])
+    return F
+def net_Y(self, X):
+    Y = self.alpha[0]*X[:,M:,:] + self.dt*self.beta[0]*self.net_F(X[:,M:,:])
+    for m in range(1, M+1):
+        Y += self.alpha[m]*X[:,M-m:-m,:] +
+             self.dt*self.beta[m]*self.net_F(X[:,M-m:-m,:])
+    return Y
+\end{verbatim}
+
+\texttt{net\_F} computes the neural network output for the dynamics based on the current data. \texttt{net\_Y} computes the predicted values for each time step using the multistep method with the network-generated dynamics.
+
+\begin{verbatim}
+def train(self, N_Iter):
+    tf_dict = {self.X_tf: self.X}
+    for it in range(N_Iter):
+        self.sess.run(self.train_op_Adam, tf_dict)
+        if it % 10 == 0:
+            loss_value = self.sess.run(self.loss, tf_dict)
+            print('It: %d, Loss: %.3e' % (it, loss_value))
+\end{verbatim}
+
+This method trains the model for \texttt{N\_Iter} iterations. It updates the model weights using \texttt{train\_op\_Adam} and prints the loss every 10 iterations.
+
+\begin{verbatim}
+def predict_f(self, X_star):
+    F_star = self.sess.run(self.f_pred, {self.X_star_tf: X_star})
+    return F_star
+\end{verbatim}
+
+This method uses the trained network to predict the dynamics for a given input \texttt{X\_star}. It returns the predicted output \texttt{F\_star}.
+
+This script defines a neural network model that approximates the dynamics of a system using a multistep time-stepping method. The model is trained using observed time series data, and the resulting network can predict future states of the system.
