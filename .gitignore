@@ -1,0 +1,13 @@
+# File temporanei di LaTeX
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Cartelle di output di alcuni editor
+_build/
