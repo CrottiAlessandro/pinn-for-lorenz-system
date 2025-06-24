@@ -1,0 +1,23 @@
+Physics-Informed Neural Networks (PINNs) are a novel and powerful approach to solving differential equations by leveraging neural networks that incorporate the underlying physical laws directly into the learning process. 
+\\The typical approach to solve a differential system with a PINNs is to encode the differential equations as part of the loss function during the training process.
+\\The main parts that compose a PINNs are:
+\begin{itemize}
+    \item the neaural networks take as \textbf{input} general information of the system as position $x(t), y(t), z(t)$ and the time step $t$.
+    \item The \textbf{Loss function} typically includes: a measure of the difference between the prediction and any available data points like initial condition or Dirichlet/Neumann condition. Here is also inclused a penalization from the Lorenz system equations by evaluating the residuals of the differential equations. This is done by differentiating the neural network outputs with respect to $t$ using automatic differentiation. This one is the \textbf{Physics-informed part}.
+    \item The neural network is \textbf{trained} using gradient-based optimization methods, such as Adam Optimization.
+\end{itemize}\\
+This method presents many advantages respect to the typical numerical methods.
+\begin{itemize}
+    \item The \textbf{embending of the lorenz equation} into the neural network's loss function, ensure that the learned solution adheres to the underlying physics of the system. This can lead to more accurate and physically consistent solutions, even with limited data.
+    \item Once trained, PINNs can potentially \textbf{generalize well} to new conditions or unseen time intervals, provided that the underlying dynamics are well captured during training.
+    \item Unlike traditional numerical methods, PINNs don't require discretization of the time or space domain. This make it easier to handle \textbf{complex geometries} or domains.
+    \item Another interesting point is that you can use PINNs for solving inverse problems, where the goal is to \textbf{identify unkown parameters} in the differential equations from data. So in the context of the Lorenz system, this could involve estimating parameters like $\sigma, \rho \text{ and } \beta$ directly from the data. 
+\end{itemize}\\
+Obviously this method has also some disadvantages.
+\begin{itemize}
+    \item Training a neural network can be \textbf{computationally expensive}. The optimization process involves the evaluation and backpropagation of parameters through the differential equations, which can be resource-intesive.
+    \item PINNs can be \textbf{sensitive to the choice of hyperparameteres}, such as the architecture of the neural network such as number of layers and neurons per layer.
+    \item The \textbf{quality and quantity of available data} can significantly impact the accuracy of the solution. If the data is sparse or noisy, the network may struggle to learn a precise model.
+    \item Unlike traditional numerical methods, which are well-understood and have clear error bounds, PINNs are relatively new, and \textbf{their behavior is not yet fully characterized}.
+    \item In chaotic systems like the Lorenz system, where solutions can exhibit high-frequency oscillations or rapid changes, PINNs might \textbf{struggle to capture these dynamics} accurately. This is due to the inherent smoothness of neural networks, which may not naturally represent sharp transitions or high-frequency components. In this project, we will see a particular adaptation of a general PINNs to the Lorenz system. It is called MultistepNNs.
+\end{itemize}
