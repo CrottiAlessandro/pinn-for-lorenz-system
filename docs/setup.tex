@@ -1,0 +1,26 @@
+We are interested in studying a Nonlinear dynamical system of the general form
+\begin{equation}\label{eq: general nlds}
+    \frac{d}{dt}\boldsymbol{x}(t)=\boldsymbol{f}(\boldsymbol{x}(t)), \ \boldsymbol{x}(t)\in\mathbf{R}^D
+\end{equation}
+the function $\boldsymbol{f}$ describes the evolution of the system. 
+We want to determine the function $\boldsymbol{f}$ and discover the underlying dynamics. In other to do that we start from some measurements of the state $\boldsymbol{x}(t)$ of the system at different time $t_1,t_2,...,t_N$.
+Consider the general form of the multistep method with M-steps to equation \ref{eq: general nlds} and obtain
+\begin{equation}\label{eq: gen multistep}
+\sum_{m=0}^M[\alpha_m\boldsymbol{x}_{n-m}+\Delta t \beta_m\boldsymbol{f}(\boldsymbol{x}_{n-m}]=0, \ n=M,...,N
+\end{equation}
+where $\boldsymbol{x}_{n-m}$ denotes the state of the system $\boldsymbol{x}(t_{n-m})$.
+We will use a neural network (NN) to approximate the function $\boldsymbol{f}$. The parameters of the NN can be learned by minimizing the loss function composed by the mean squared error (MSE) or the sum of the squared error (SSE).
+\begin{equation}\label{eq: general loss}
+   Loss:=\frac{1}{N-M+1}\sum_{n=M}^N|\boldsymbol{y}_n|^2
+\end{equation}
+from eq. \eqref{eq: gen multistep} we can define
+\begin{equation}\label{eq: gen itearation}
+\boldsymbol{y}_n:=\sum_{m=0}^M[\alpha_m\boldsymbol{x}_{n-m}+\Delta t \beta_m\boldsymbol{f}(\boldsymbol{x}_{n-m})], \ n=M,...,N,
+\end{equation}
+at this point we can redefine the eq. \eqref{eq: general nlds} including the parameterization, time dependence, and forcing
+\begin{equation*}
+    \frac{d}{dt}\boldsymbol{x}(t)=\boldsymbol{f}(\boldsymbol{x},\boldsymbol{u},t;\lambda), 
+ \ \Dot{t}=1, \ \Dot{\lambda}=0
+\end{equation*}
+where $\boldsymbol{u}(t)$ is the external forcing.
+
