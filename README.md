@@ -1,7 +1,5 @@
 # Solving the Lorenz System with Physics-Informed Neural Networks (PINNs)
 
-![Lorenz Attractor Animation](assets/lorenz_attractor.gif)
-*An animation of the Lorenz attractor trajectory discovered by the Physics-Informed Neural Network.*
 
 ---
 
@@ -45,8 +43,6 @@ $$
 
 Where $\sigma$, $\rho$, and $\beta$ are system parameters. In this project, we analyze the stability of the system's fixed points and explore its behavior for the classic parameters ($\sigma=10, \rho=28, \beta=8/3$) that give rise to the well-known Lorenz attractor.
 
-![Stability Diagram](assets/stability_diagram.png)
-*Stability analysis of the Lorenz system's fixed points, a key part of understanding its dynamics.*
 
 ---
 
@@ -78,7 +74,7 @@ The Jupyter Notebook presents a detailed analysis of the model's performance. We
 -   **Multistep Order (`M`):** Higher orders of the BDF scheme (larger `M`) consistently led to better convergence and lower final errors, demonstrating the effectiveness of incorporating more historical data points into the loss calculation.
 -   **Trajectory Prediction:** The trained model successfully captures the characteristic butterfly shape of the Lorenz attractor, providing accurate long-term predictions even from limited initial data.
 
-![Trajectory Comparison](assets/trajectory_comparison.png)
+![Trajectory Comparison](docs/80x5.png)
 *Comparison between the true Lorenz trajectory (blue) and the PINN prediction (orange), showing excellent agreement.*
 
 ---
